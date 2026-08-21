@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Vehicle Damage AI</title>
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- HEADER -->
+
+    <header class="topbar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                🚗
+            </div>
+
+            <div class="brand-text">
+                <strong>Vehicle Damage AI</strong>
+                <span>AI-Powered Inspection System</span>
+            </div>
+
+        </div>
+
+        <div class="header-actions">
+
+            <div class="model-status">
+                <span class="status-dot"></span>
+                <span>AI Model Online</span>
+            </div>
+
+            <button
+                id="headerNewScanButton"
+                class="header-button"
+            >
+                <span>↻</span>
+                New Scan
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- MAIN -->
+
+    <main class="dashboard">
+
+        <!-- LEFT SIDEBAR -->
+
+        <aside class="sidebar">
+
+            <!-- UPLOAD CARD -->
+
+            <section class="sidebar-card upload-card">
+
+                <div
+                    id="uploadArea"
+                    class="upload-zone"
+                >
+
+                    <div class="upload-cloud">
+                        ☁
+                    </div>
+
+                    <h2>
+                        Upload Vehicle Image
+                    </h2>
+
+                    <p>
+                        Drag & drop an image here
+                    </p>
+
+                    <span class="upload-or">
+                        or
+                    </span>
+
+                    <label
+                        for="imageInput"
+                        class="primary-button"
+                    >
+                        Choose Image
+                    </label>
+
+                    <input
+                        type="file"
+                        id="imageInput"
+                        accept="image/jpeg,image/png,image/webp"
+                        hidden
+                    >
+
+                    <span class="upload-info">
+                        JPG, PNG, WEBP up to 10MB
+                    </span>
+
+                </div>
+
+            </section>
+
+
+            <!-- SELECTED IMAGE -->
+
+            <section
+                id="selectedImageCard"
+                class="sidebar-card selected-card hidden"
+            >
+
+                <div class="card-title">
+
+                    <span class="success-icon">
+                        ✓
+                    </span>
+
+                    <strong>
+                        Selected Image
+                    </strong>
+
+                </div>
+
+                <div class="selected-image-wrapper">
+
+                    <img
+                        id="sidebarPreview"
+                        alt="Selected vehicle"
+                    >
+
+                </div>
+
+                <div class="selected-file-info">
+
+                    <span id="sidebarFileName">
+                        image.jpg
+                    </span>
+
+                    <span id="sidebarFileSize">
+                        0 MB
+                    </span>
+
+                </div>
+
+                <button
+                    id="sidebarChangeButton"
+                    class="text-button"
+                >
+                    ↗ Change Image
+                </button>
+
+            </section>
+
+
+            <!-- HOW IT WORKS -->
+
+            <section class="sidebar-card how-card">
+
+                <div class="card-title">
+                    <span class="info-icon">ⓘ</span>
+                    <strong>How It Works</strong>
+                </div>
+
+                <div class="steps">
+
+                    <div class="step">
+
+                        <span class="step-number">1</span>
+
+                        <div>
+                            <strong>Upload</strong>
+                            <p>
+                                Upload a clear image of the vehicle
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="step">
+
+                        <span class="step-number">2</span>
+
+                        <div>
+                            <strong>AI Analysis</strong>
+                            <p>
+                                Our YOLO11n model analyzes the image
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="step">
+
+                        <span class="step-number">3</span>
+
+                        <div>
+                            <strong>View Results</strong>
+                            <p>
+                                See detected damage with confidence
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="step">
+
+                        <span class="step-number">4</span>
+
+                        <div>
+                            <strong>Take Action</strong>
+                            <p>
+                                Download report or start new scan
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- TIPS -->
+
+            <section class="sidebar-card tips-card">
+
+                <div class="card-title">
+                    <span class="tip-icon">♧</span>
+                    <strong>Best Results Tips</strong>
+                </div>
+
+                <ul>
+
+                    <li>
+                        <span>✓</span>
+                        Use clear, well-lit images
+                    </li>
+
+                    <li>
+                        <span>✓</span>
+                        Capture visible damage areas
+                    </li>
+
+                    <li>
+                        <span>✓</span>
+                        Avoid blurry or dark images
+                    </li>
+
+                    <li>
+                        <span>✓</span>
+                        Close-up shots work best
+                    </li>
+
+                </ul>
+
+            </section>
+
+        </aside>
+
+
+        <!-- RIGHT CONTENT -->
+
+        <section class="content">
+
+            <!-- EMPTY / UPLOAD STATE -->
+
+            <section
+                id="emptyState"
+                class="empty-state"
+            >
+
+                <div class="empty-icon">
+                    🔍
+                </div>
+
+                <h1>
+                    Vehicle Damage Detection
+                </h1>
+
+                <p>
+                    Upload a vehicle image to detect visible damage
+                    using our YOLO11n AI model.
+                </p>
+
+            </section>
+
+
+            <!-- PREVIEW -->
+
+            <section
+                id="previewSection"
+                class="panel preview-panel hidden"
+            >
+
+                <div class="panel-heading">
+
+                    <div>
+                        <span class="eyebrow">
+                            IMAGE READY
+                        </span>
+
+                        <h2>
+                            Ready for inspection
+                        </h2>
+
+                        <p>
+                            Review your image before starting AI analysis.
+                        </p>
+                    </div>
+
+                    <button
+                        id="previewChangeButton"
+                        class="secondary-button"
+                    >
+                        Change Image
+                    </button>
+
+                </div>
+
+                <div class="preview-image-container">
+
+                    <img
+                        id="imagePreview"
+                        alt="Vehicle preview"
+                    >
+
+                </div>
+
+                <div class="preview-footer">
+
+                    <div>
+                        <strong id="previewFileName">
+                            image.jpg
+                        </strong>
+
+                        <span id="previewFileSize">
+                            Ready to scan
+                        </span>
+                    </div>
+
+                    <button
+                        id="detectButton"
+                        class="primary-button analyze-button"
+                    >
+                        Analyze Damage
+                        <span>→</span>
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- LOADING -->
+
+            <section
+                id="loadingSection"
+                class="panel loading-panel hidden"
+            >
+
+                <div class="loading-spinner"></div>
+
+                <span class="eyebrow">
+                    AI ANALYSIS
+                </span>
+
+                <h2>
+                    Inspecting your vehicle
+                </h2>
+
+                <p>
+                    YOLO11n is analyzing the image for visible damage.
+                </p>
+
+                <div class="loading-progress">
+                    <div></div>
+                </div>
+
+            </section>
+
+
+            <!-- RESULTS -->
+
+            <section
+                id="resultSection"
+                class="hidden"
+            >
+
+                <!-- ANALYSIS HEADER -->
+
+                <div class="analysis-header panel">
+
+                    <div class="analysis-title">
+
+                        <div class="complete-icon">
+                            ✓
+                        </div>
+
+                        <div>
+
+                            <span class="eyebrow success-text">
+                                ANALYSIS COMPLETE
+                            </span>
+
+                            <h1 id="resultTitle">
+                                0 Damage Detections Found
+                            </h1>
+
+                            <p>
+                                Detected damage areas with confidence scores
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="analysis-time">
+                        <span>◷</span>
+                        <span id="analysisDate">
+                            Just now
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <!-- STATS -->
+
+                <div
+                    id="statsGrid"
+                    class="stats-grid"
+                ></div>
+
+
+                <!-- IMAGE RESULT -->
+
+                <section class="panel result-image-panel">
+
+                    <div class="result-image-header">
+
+                        <div class="result-image-title">
+
+                            <strong>
+                                Detected Image
+                            </strong>
+
+                            <span class="ai-badge">
+                                AI Analysis Result
+                            </span>
+
+                        </div>
+
+                        <div class="view-options">
+
+                            <span>
+                                View Options
+                            </span>
+
+                            <button
+                                id="originalButton"
+                                class="view-button"
+                            >
+                                ◉ Original
+                            </button>
+
+                            <button
+                                id="detectedButton"
+                                class="view-button active"
+                            >
+                                ⊙ Detections
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="canvas-wrapper">
+
+                        <canvas
+                            id="resultCanvas"
+                        ></canvas>
+
+                    </div>
+
+
+                    <div class="result-image-footer">
+
+                        <span class="legend">
+                            <span class="legend-dot"></span>
+                            Green boxes show detected damage areas
+                        </span>
+
+                        <button
+                            id="downloadButton"
+                            class="download-button"
+                        >
+                            ↓ Download Image
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+                <!-- DETECTION DETAILS -->
+
+                <section class="panel details-panel">
+
+                    <div class="details-header">
+
+                        <div>
+
+                            <h2>
+                                Detection Details
+                            </h2>
+
+                            <p>
+                                Individual AI predictions for this image
+                            </p>
+
+                        </div>
+
+                        <span
+                            id="detectionCount"
+                            class="count-badge"
+                        >
+                            0
+                        </span>
+
+                    </div>
+
+
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>#</th>
+                                    <th>Damage Type</th>
+                                    <th>Confidence</th>
+                                    <th>Bounding Box (x1, y1, x2, y2)</th>
+                                    <th>Level</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody
+                                id="resultsList"
+                            ></tbody>
+
+                        </table>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+
+            <!-- ERROR -->
+
+            <div
+                id="errorMessage"
+                class="error-message hidden"
+            ></div>
+
+        </section>
+
+    </main>
+
+
+    <!-- FOOTER -->
+
+    <footer class="footer">
+
+        <div class="footer-brand">
+
+            <div class="footer-logo">
+                🚗
+            </div>
+
+            <div>
+                <strong>Vehicle Damage AI</strong>
+
+                <span>
+                    AI-Powered Vehicle Inspection System
+                </span>
+
+                <small>
+                    Built with ❤️ using FastAPI & YOLO11n
+                </small>
+            </div>
+
+        </div>
+
+
+        <div class="footer-links">
+
+            <h4>
+                Quick Links
+            </h4>
+
+            <span>
+                Documentation →
+            </span>
+
+            <span>
+                About Model →
+            </span>
+
+            <span>
+                Best Practices →
+            </span>
+
+            <span>
+                Support →
+            </span>
+
+        </div>
+
+
+        <div class="footer-status">
+
+            <h4>
+                System Status
+            </h4>
+
+            <span>
+                <i></i>
+                AI Model: <b>Online</b>
+            </span>
+
+            <span>
+                <i></i>
+                API Status: <b>Healthy</b>
+            </span>
+
+            <span>
+                <i></i>
+                Last Updated: <b>Just now</b>
+            </span>
+
+        </div>
+
+
+        <div class="footer-version">
+
+            <span>
+                Version 1.0.0
+            </span>
+
+            <strong>
+                YOLO11n
+            </strong>
+
+        </div>
+
+    </footer>
+
+</div>
+
+
+<script src="/script.js"></script>
+
+</body>
+</html>

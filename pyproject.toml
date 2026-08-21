@@ -1,0 +1,13 @@
+[project]
+name = "vehicle-damage-classification"
+version = "0.1.0"
+description = "AI-powered vehicle damage detection using YOLO11n and FastAPI"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.141.1",
+    "pillow==11.3.0",
+    "python-multipart>=0.0.32",
+    "ultralytics==8.4.124",
+    "uvicorn[standard]>=0.52.4",
+]
