@@ -24,4 +24,4 @@ RUN pip uninstall -y opencv-python opencv-python-headless && \
 COPY . .
 
 # 5. Uvicorn se app start karo (Railway ka port use karke)
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+CMD sh -c "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
