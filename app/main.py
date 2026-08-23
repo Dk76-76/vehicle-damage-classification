@@ -30,16 +30,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.get("/", include_in_schema=False)
-def serve_frontend():
-    """Serve the frontend application."""
-
-    return FileResponse(
-        FRONTEND_DIR / "index.html"
-    )
-
-
 @app.get("/favicon.ico", include_in_schema=False)
 def favicon():
     """Serve favicon for browsers requesting favicon.ico."""
