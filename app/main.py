@@ -1,3 +1,4 @@
+import modal
 from io import BytesIO
 from pathlib import Path
 
@@ -9,20 +10,24 @@ from PIL import Image, UnidentifiedImageError
 
 from app.services import predict_image
 
+# Modal Setup (New API)
+modal_app = modal.App("vehicle-damage-api")
+modal_image = (
+    modal.Image.debian_slim()
+    .pip_install("fastapi", "uvicorn", "python-multipart", "pillow", "ultralytics")
+    .add_local_dir("frontend", remote_path="/frontend")
+)
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-FRONTEND_DIR = PROJECT_ROOT / "frontend"
-FAVICON_PATH = FRONTEND_DIR / "favicon.svg"
+REMOTE_FRONTEND_DIR = Path("/frontend")
+FAVICON_PATH = REMOTE_FRONTEND_DIR / "favicon.svg"
 
-
-app = FastAPI(
+web_app = FastAPI(
     title="Vehicle Damage Classification API",
     description="YOLO11n based vehicle damage detection API.",
     version="1.0.0",
 )
 
-
-app.add_middleware(
+web_app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
@@ -30,35 +35,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/favicon.ico", include_in_schema=False)
+@web_app.get("/favicon.ico", include_in_schema=False)
 def favicon():
     """Serve favicon for browsers requesting favicon.ico."""
-
     if not FAVICON_PATH.exists():
         raise HTTPException(
             status_code=404,
             detail="Favicon not found.",
         )
-
     return FileResponse(
         FAVICON_PATH,
         media_type="image/svg+xml",
     )
 
-
-@app.get("/health")
+@web_app.get("/health")
 def health_check():
     """Health check endpoint."""
-
     return {
         "status": "healthy",
     }
 
-
-@app.post("/predict")
+@web_app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     """Receive an image and return vehicle damage detections."""
-
     if not file.content_type:
         raise HTTPException(
             status_code=400,
@@ -73,26 +72,20 @@ async def predict(file: UploadFile = File(...)):
 
     try:
         contents = await file.read()
-
         if not contents:
             raise HTTPException(
                 status_code=400,
                 detail="The uploaded image is empty.",
             )
-
-        image = Image.open(
-            BytesIO(contents)
-        ).convert("RGB")
+        image = Image.open(BytesIO(contents)).convert("RGB")
 
     except UnidentifiedImageError:
         raise HTTPException(
             status_code=400,
             detail="The uploaded file is not a valid image.",
         )
-
     except HTTPException:
         raise
-
     except Exception as exc:
         raise HTTPException(
             status_code=400,
@@ -101,13 +94,11 @@ async def predict(file: UploadFile = File(...)):
 
     try:
         result = predict_image(image)
-
     except FileNotFoundError as exc:
         raise HTTPException(
             status_code=500,
             detail=str(exc),
         )
-
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -120,12 +111,20 @@ async def predict(file: UploadFile = File(...)):
         "count": result["count"],
     }
 
-
-app.mount(
+web_app.mount(
     "/",
     StaticFiles(
-        directory=FRONTEND_DIR,
+        directory="/frontend",
         html=True,
+        check_dir=False,
     ),
     name="frontend",
 )
+
+# Modal Serverless Deployment Wrapper (Updated API without 'mounts')
+@modal_app.function(
+    image=modal_image,
+)
+@modal.asgi_app()
+def serve():
+    return web_app

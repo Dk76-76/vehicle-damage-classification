@@ -1,5 +1,4 @@
-const API_URL = window.location.origin;
-
+const API_URL = "https://dk76-76--vehicle-damage-api-serve.us-east.modal.run";
 
 /* =========================
    ELEMENTS
