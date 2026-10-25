@@ -6,6 +6,7 @@ from ultralytics import YOLO
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MODEL_PATH = PROJECT_ROOT / "models" / "vehicle_damage_yolo11n.pt"
+MODAL_MODEL_PATH = Path("/root/models/vehicle_damage_yolo11n.pt")
 
 
 CLASS_NAMES = {
@@ -27,12 +28,16 @@ def get_model() -> YOLO:
     global _model
 
     if _model is None:
-        if not MODEL_PATH.exists():
+        if MODEL_PATH.exists():
+            target_path = MODEL_PATH
+        elif MODAL_MODEL_PATH.exists():
+            target_path = MODAL_MODEL_PATH
+        else:
             raise FileNotFoundError(
-                f"Model file not found: {MODEL_PATH}"
+                f"Model file not found at {MODEL_PATH} or {MODAL_MODEL_PATH}"
             )
 
-        _model = YOLO(str(MODEL_PATH))
+        _model = YOLO(str(target_path))
 
     return _model
 

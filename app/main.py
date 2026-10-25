@@ -10,15 +10,25 @@ from PIL import Image, UnidentifiedImageError
 
 from app.services import predict_image
 
-# Modal Setup (New API)
+# Modal Setup (Complete with Linux libs and Folder Mounts)
 modal_app = modal.App("vehicle-damage-api")
+
 modal_image = (
-    modal.Image.debian_slim()
-    .pip_install("fastapi", "uvicorn", "python-multipart", "pillow", "ultralytics")
-    .add_local_dir("frontend", remote_path="/frontend")
+    modal.Image.debian_slim(python_version="3.11")
+    .apt_install("libgl1", "libglib2.0-0")  # YOLO/OpenCV ke liye zaroori Linux libraries
+    .pip_install(
+        "fastapi",
+        "uvicorn",
+        "python-multipart",
+        "pillow",
+        "ultralytics",
+    )
+    .add_local_dir("frontend", remote_path="/root/frontend")
+    .add_local_dir("models", remote_path="/root/models")
+    .add_local_dir("app", remote_path="/root/app")
 )
 
-REMOTE_FRONTEND_DIR = Path("/frontend")
+REMOTE_FRONTEND_DIR = Path("/root/frontend")
 FAVICON_PATH = REMOTE_FRONTEND_DIR / "favicon.svg"
 
 web_app = FastAPI(
@@ -56,7 +66,7 @@ def health_check():
     }
 
 @web_app.post("/predict")
-async def predict(file: UploadFile = File(...)):
+def predict(file: UploadFile = File(...)):
     """Receive an image and return vehicle damage detections."""
     if not file.content_type:
         raise HTTPException(
@@ -71,7 +81,7 @@ async def predict(file: UploadFile = File(...)):
         )
 
     try:
-        contents = await file.read()
+        contents = file.file.read()
         if not contents:
             raise HTTPException(
                 status_code=400,
@@ -111,20 +121,26 @@ async def predict(file: UploadFile = File(...)):
         "count": result["count"],
     }
 
-web_app.mount(
-    "/",
-    StaticFiles(
-        directory="/frontend",
-        html=True,
-        check_dir=False,
-    ),
-    name="frontend",
-)
+if REMOTE_FRONTEND_DIR.exists():
+    web_app.mount(
+        "/",
+        StaticFiles(
+            directory=str(REMOTE_FRONTEND_DIR),
+            html=True,
+            check_dir=False,
+        ),
+        name="frontend",
+    )
 
-# Modal Serverless Deployment Wrapper (Updated API without 'mounts')
+# Modal Serverless Deployment Wrapper (4-Core CPU & 4GB RAM - No Card Needed)
 @modal_app.function(
     image=modal_image,
+    cpu=4.0,
+    memory=4096,
+    timeout=300,
 )
 @modal.asgi_app()
 def serve():
+    from app.services import get_model
+    get_model()
     return web_app
