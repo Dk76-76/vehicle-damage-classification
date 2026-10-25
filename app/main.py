@@ -132,11 +132,10 @@ if REMOTE_FRONTEND_DIR.exists():
         name="frontend",
     )
 
-# Modal Serverless Deployment Wrapper (4-Core CPU & 4GB RAM - No Card Needed)
+# Modal Serverless Deployment Wrapper with T4 GPU
 @modal_app.function(
     image=modal_image,
-    cpu=4.0,
-    memory=4096,
+    gpu="T4",       # <-- 16GB VRAM NVIDIA T4 GPU
     timeout=300,
 )
 @modal.asgi_app()
